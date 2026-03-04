@@ -42,11 +42,28 @@
         let score = 0;
         let gameOver = false;
 
+        function resetGame() {
+            snake = [{x: 10, y: 10}];
+            vel = {x: 0, y: 0};
+            apple = {x: 5, y: 5};
+            score = 0;
+            gameOver = false;
+            document.getElementById('score').textContent = 'Score: ' + score;
+            gameLoop();
+        }
+
         function gameLoop() {
             if (gameOver) {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
                 ctx.fillStyle = 'white';
                 ctx.font = '30px Arial';
                 ctx.fillText('Game Over', canvas.width / 2 - 80, canvas.height / 2);
+                
+                // show retry instruction
+                ctx.font = '16px Arial';
+                ctx.fillText('Press R to Retry', canvas.width / 2 - 70, canvas.height / 2 + 40);
                 return;
             }
 
@@ -119,7 +136,14 @@
              *   S / ArrowDown  - down
              *   A / ArrowLeft  - left
              *   D / ArrowRight - right
+             *   R              - retry after game over
              */
+            // handle retry
+            if ((e.key === 'r' || e.key === 'R') && gameOver) {
+                resetGame();
+                return;
+            }
+            
             switch (e.key) {
                 case 'ArrowUp':
                 case 'w':
