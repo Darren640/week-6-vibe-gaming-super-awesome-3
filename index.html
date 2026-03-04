@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #222;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        canvas {
+            border: 2px solid #fff;
+            background: #000;
+        }
+        #score {
+            margin-top: 10px;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Snake Eating Apple</h1>
+    <canvas id="game" width="400" height="400"></canvas>
+    <div id="score">Score: 0</div>
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        // use 15x15 grid cells for snake/apple size
+        const gridSize = 15;  // each square is 15 pixels
+        const tileCount = canvas.width / gridSize;  // number of cells per row/column
+
+        let snake = [{x: 10, y: 10}];
+        let vel = {x: 0, y: 0};
+        let apple = {x: 5, y: 5};
+        let score = 0;
+        let gameOver = false;
+
+        function gameLoop() {
+            if (gameOver) {
+                ctx.fillStyle = 'white';
+                ctx.font = '30px Arial';
+                ctx.fillText('Game Over', canvas.width / 2 - 80, canvas.height / 2);
+                return;
+            }
+
+            moveSnake();
+            checkCollision();
+            draw();
+            setTimeout(gameLoop, 100);
+        }
+
+        function moveSnake() {
+            // add new head based on current velocity
+            const head = {x: snake[0].x + vel.x, y: snake[0].y + vel.y};
+            snake.unshift(head);
+            // if apple eaten, increment score and place a new apple
+            // do NOT remove tail, effectively growing the snake by one cell
+            if (head.x === apple.x && head.y === apple.y) {
+                score++;
+                placeApple();
+                document.getElementById('score').textContent = 'Score: ' + score;
+            } else {
+                // no apple hit: remove tail to keep length constant
+                snake.pop();
+            }
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                gameOver = true;
+            }
+            // self collision
+            for (let i = 1; i < snake.length; i++) {
+                if (snake[i].x === head.x && snake[i].y === head.y) {
+                    gameOver = true;
+                    break;
+                }
+            }
+        }
+
+        function placeApple() {
+            apple.x = Math.floor(Math.random() * tileCount);
+            apple.y = Math.floor(Math.random() * tileCount);
+            for (let piece of snake) {
+                if (piece.x === apple.x && piece.y === apple.y) {
+                    placeApple();
+                    return;
+                }
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // draw snake
+            ctx.fillStyle = 'lime';
+            for (let piece of snake) {
+                ctx.fillRect(piece.x * gridSize, piece.y * gridSize, gridSize - 1, gridSize - 1);
+            }
+
+            // draw apple
+            ctx.fillStyle = 'red';
+            ctx.fillRect(apple.x * gridSize, apple.y * gridSize, gridSize - 1, gridSize - 1);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            /*
+             * Allow arrow keys or WASD controls:
+             *   W / ArrowUp    - up
+             *   S / ArrowDown  - down
+             *   A / ArrowLeft  - left
+             *   D / ArrowRight - right
+             */
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    if (vel.y === 0) { vel = {x: 0, y: -1}; }
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    if (vel.y === 0) { vel = {x: 0, y: 1}; }
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    if (vel.x === 0) { vel = {x: -1, y: 0}; }
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    if (vel.x === 0) { vel = {x: 1, y: 0}; }
+                    break;
+            }
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
